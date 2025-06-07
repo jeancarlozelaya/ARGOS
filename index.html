@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Reporte de Fugas y Derrames</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <link rel="preload" href="https://github.com/jeancarlozelaya/PIBRISA/blob/main/Im%C3%A1genes/Icono.png?raw=true" as="image">
+<style>
+    /* Estilos base (igual que en tu página original) */
+    body, html {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f9f9f9;
+        color: #333;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 100vh;
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+
+    .header {
+        height: 150px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+    }
+
+    .header-image {
+        max-width: 100%;
+        height: auto;
+        max-height: 100px;
+    }
+
+    .container {
+        background: #ffffff;
+        padding: 20px;
+        border-radius: 10px;
+        width: 90%;
+        max-width: 600px;
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+        margin-top: 20px;
+        text-align: center;
+        margin: 40px auto;
+        grid-row: 2;
+        height: auto;
+        box-sizing: border-box;
+    }
+
+    h1 {
+        text-align: center;
+        color: #333;
+        margin: 0 0 20px 0;
+    }
+
+    label {
+        display: block;
+        margin-top: 10px;
+        font-weight: bold;
+    }
+
+    input[type="text"],
+    input[type="date"],
+    input[type="time"],
+    input[type="email"],
+    textarea,
+    select,
+    button {
+        width: 100%;
+        margin-top: 5px;
+        padding: 10px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        box-sizing: border-box;
+    }
+
+    button {
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        cursor: pointer;
+        padding: 12px 0;
+    }
+
+    button:hover {
+        background-color: #0056b3;
+    }
+
+    .question-container {
+        margin-bottom: 20px;
+        text-align: left;
+        padding: 10px;
+        border: 2px solid #ccc;
+        border-radius: 5px;
+        background-color: #f9f9f9;
+        transition: border-color 0.3s;
+        box-sizing: border-box;
+    }
+
+    .question-container:hover {
+        border-color: #007BFF;
+    }
+
+    .question-container input[type="text"],
+    .question-container input[type="date"],
+    .question-container input[type="time"],
+    .question-container input[type="email"],
+    .question-container textarea,
+    .question-container select {
+        padding: 10px;
+        border: 2px solid #ccc;
+        border-radius: 5px;
+        width: 100%;
+        font-size: 16px;
+        background-color: #f9f9f9;
+        color: #333;
+        transition: border-color 0.3s;
+        box-sizing: border-box;
+        margin-top: 5px;
+    }
+
+    .question-container input[type="text"]:focus,
+    .question-container input[type="date"]:focus,
+    .question-container input[type="time"]:focus,
+    .question-container input[type="email"]:focus,
+    .question-container textarea:focus,
+    .question-container select:focus {
+        border-color: #007BFF;
+        outline: none;
+    }
+
+    /* Estilo para radio buttons y checkboxes */
+    .radio-group, .checkbox-group {
+        margin-top: 10px;
+    }
+
+    .radio-group label, .checkbox-group label {
+        display: flex;
+        align-items: center;
+        margin: 5px 0;
+        font-weight: normal;
+        cursor: pointer;
+    }
+
+    .radio-group input[type="radio"],
+    .checkbox-group input[type="checkbox"] {
+        width: auto;
+        margin-right: 10px;
+    }
+
+    /* Estilo para campos condicionales */
+    .conditional-field {
+        margin-top: 10px;
+        padding-left: 20px;
+        border-left: 3px solid #007BFF;
+        display: none;
+    }
+
+    /* Nuevos estilos para validación de campos */
+    .question-container input:invalid,
+    .question-container textarea:invalid,
+    .question-container select:invalid,
+    .invalid-field {
+        border-color: #ff4444 !important;
+    }
+
+    .question-container input:valid,
+    .question-container textarea:valid,
+    .question-container select:valid,
+    .valid-field {
+        border-color: #00C851 !important;
+    }
+
+    .radio-group.invalid-field {
+        border: 2px solid #ff4444;
+        padding: 10px;
+        border-radius: 5px;
+    }
+
+    .radio-group.valid-field {
+        border: 2px solid #00C851;
+        padding: 10px;
+        border-radius: 5px;
+    }
+
+    /* Estilos para el estado inicial (sin validar) */
+    .question-container input:not(:focus):not(:placeholder-shown):invalid,
+    .question-container textarea:not(:focus):not(:placeholder-shown):invalid,
+    .question-container select:not(:focus):not(:placeholder-shown):invalid {
+        border-color: #ff4444 !important;
+    }
+
+    .question-container input:not(:focus):not(:placeholder-shown):valid,
+    .question-container textarea:not(:focus):not(:placeholder-shown):valid,
+    .question-container select:not(:focus):not(:placeholder-shown):valid {
+        border-color: #00C851 !important;
+    }
+
+#overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  flex-direction: column;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid rgba(0, 123, 255, 0.2);
+  border-radius: 50%;
+  border-top-color: #007BFF;
+  animation: spin 1s ease-in-out infinite;
+  margin-bottom: 20px;
+}
+
+#loadingMessage {
+  text-align: center;
+  color: #333;
+  font-family: Arial, sans-serif;
+}
+
+#loadingMessage h3 {
+  margin: 0 0 10px;
+  font-size: 1.2em;
+}
+
+#loadingMessage p {
+  margin: 0;
+  color: #666;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+    /* SweetAlert estilos */
+    .swal-actions {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        width: 80%;
+        margin: 0 auto;
+        flex-wrap: nowrap;
+    }
+
+    .swal-content {
+        font-size: 0.9em;
+        line-height: 1.4;
+    }
+
+    .swal-button,
+    .swal-button-cancel {
+        flex: 1;
+        min-width: 120px;
+        padding: 10px 20px;
+        font-size: 14px;
+        text-align: center;
+        border: none;
+        border-radius: 4px;
+        color: white;
+        transition: background-color 0.3s ease;
+    }
+
+    .swal-popup {
+        width: 300px;
+        max-width: 90%;
+    }
+
+    .swal-button {
+        background-color: #28a745;
+        color: white;
+        border: none;
+        border-radius: 4px;
+    }
+
+    .swal2-popup .swal2-actions .swal-button-cancel {
+        background-color: #FF6347 !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 4px !important;
+    }
+
+    .swal2-actions {
+        display: flex !important;
+        justify-content: center;
+        gap: 10px;
+        flex-wrap: nowrap;
+    }
+
+    .swal2-icon.swal2-icon-show {
+        background-color: transparent !important;
+    }
+
+    /* Estilos para imágenes adjuntas */
+    .image-preview {
+        width: 100%;
+        max-height: 200px;
+        overflow-y: auto;
+        border: 0px solid #ccc;
+        padding: 10px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        box-sizing: border-box;
+    }
+
+    .image-preview-item {
+        position: relative;
+        width: 85px;
+        height: 85px;
+        overflow: hidden;
+        border-radius: 5px;
+        border: 1px solid #ddd;
+    }
+
+    .image-preview-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .delete-icon {
+        position: absolute;
+        top: 5px;
+        left: 5px;
+        width: 20px;
+        height: 20px;
+        background: rgba(255, 0, 0, 0.8);
+        color: #fff;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        cursor: pointer;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+
+    .image-preview-item:hover .delete-icon {
+        opacity: 1;
+    }
+
+    /* Área de carga de archivos */
+    .file-upload {
+        display: block;
+        position: relative;
+        width: 100%;
+        padding: 20px;
+        background: #f0f8ff;
+        border: 2px dashed #ccc;
+        text-align: center;
+        border-radius: 5px;
+        font-size: 16px;
+        cursor: pointer;
+        margin-top: 10px;
+        box-sizing: border-box;
+        border: 2px dashed #007BFF;
+        border-radius: 10px;
+        padding: 40px 20px;
+        text-align: center;
+        cursor: pointer;
+        font-size: 16px;
+        background-color: #f0f8ff;
+        color: #007BFF;
+        transition: background-color 0.3s ease, border-color 0.3s ease;
+        margin: 10px 0;
+    }
+
+    .file-upload:hover {
+        border-color: #0056b3;
+    }
+
+    .file-upload input[type="file"] {
+        display: none;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+    /* Botón deshabilitado */
+    button:disabled {
+        background-color: #cccccc;
+        color: #666666;
+        cursor: not-allowed;
+        opacity: 0.7;
+    }
+
+    /* Botón habilitado */
+    button:not(:disabled) {
+        background-color: #007bff;
+        color: #fff;
+        cursor: pointer;
+        opacity: 1;
+    }
+
+.required-asterisk {
+    color: red;
+}
+
+</style>
+</head>
+<body>
+<!--
+<div class="header">
+   //  <img src="https://github.com/jeancarlozelaya/PIBRISA/blob/main/Im%C3%A1genes/Icono.png?raw=true" alt="Pisos Brillantes" class="header-image">
+</div>
+-->
+    <div class="container">
+        <h1>Registro de Incidentes por Fugas y Derrames de Agua</h1>
+        <form id="form-container">
+
+            <!-- 1. Fecha y hora del hallazgo -->
+            <div class="question-container">
+                <label for="fecha">Fecha del hallazgo: <span style="color: red;">*</span></label>
+                <input type="date" id="fecha" name="fecha" required>
+                
+                <label for="hora" style="margin-top: 15px;">Hora del hallazgo: <span style="color: red;">*</span></label>
+                <input type="time" id="hora" name="hora" required>
+            </div>
+
+            <!-- 2. Tipo de incidente -->
+            <div class="question-container">
+                <label>Tipo de incidente: <span style="color: red;">*</span></label>
+                <div class="radio-group" id="tipo-incidente-group">
+                    <label><input type="radio" name="tipo-incidente" value="Fuga de agua" required> Fuga de agua</label>
+                    <label><input type="radio" name="tipo-incidente" value="Derrame de agua"> Derrame de agua</label>
+                    <label><input type="radio" name="tipo-incidente" value="Otro"> Otro</label>
+                </div>
+                
+                <div id="otro-incidente-container" class="conditional-field">
+                    <label for="otro-incidente">Especifique:</label>
+                    <input type="text" id="otro-incidente" name="otro-incidente">
+                </div>
+            </div>
+
+            <!-- 3. Ubicación exacta -->
+            <div class="question-container">
+                <label for="ubicacion">Ubicación exacta del incidente: <span style="color: red;">*</span></label>
+                <input type="text" id="ubicacion" name="ubicacion" placeholder="Ej: Baño de Hombres de Administración" required>
+            </div>
+
+            <!-- 4. Descripción detallada -->
+            <div class="question-container">
+                <label for="descripcion">Descripción detallada: <span style="color: red;">*</span></label>
+                <textarea id="descripcion" name="descripcion" rows="4" placeholder="Describa lo que encontró, condiciones observadas, etc." required></textarea>
+            </div>
+
+            <!-- 5. Evidencia fotográfica -->
+            <div class="question-container">
+                <label for="adjunto1">Evidencia (Opcional):</label>
+                <div class="file-upload" id="drag-area1" onclick="document.getElementById('adjunto1').click()">
+                    <input type="file" id="adjunto1" name="adjunto1" accept="image/*" multiple>
+                    <span class="file-upload-text">Haz clic o arrastra imágenes para adjuntarlas</span>
+                </div>
+                <div id="preview1" class="image-preview"></div>
+            </div>
+
+            <!-- 6. Estado del incidente -->
+            <div class="question-container">
+                <label>Estado del incidente: <span style="color: red;">*</span></label>
+                <div class="radio-group" id="estado-incidente-group">
+                    <label><input type="radio" name="estado-incidente" value="Sí, aún está ocurriendo" required> Sí, aún está ocurriendo</label>
+                    <label><input type="radio" name="estado-incidente" value="No, ya se detuvo o se controló"> No, ya se detuvo o se controló</label>
+                </div>
+            </div>
+
+            <!-- 7. Acción inmediata -->
+            <div class="question-container">
+                <label for="accion-inmediata">¿Se tomó alguna acción inmediata?</label>
+                <textarea id="accion-inmediata" name="accion-inmediata" rows="4" placeholder="Describa las acciones tomadas (cierre de válvulas, señalización, etc.)"></textarea>
+            </div>
+
+            <!-- 8. Notificación y seguimiento -->
+            <div class="question-container">
+                <label style="display: flex; align-items: center;">
+                    <input type="checkbox" id="notificacion" name="notificacion" style="width: auto; margin-right: 10px;">
+                    ¿Desea recibir notificación del seguimiento?
+                </label>
+                
+                <div id="email-container" class="conditional-field">
+                    <label for="email">Correo electrónico para notificación:</label>
+                    <input type="email" id="email" name="email" placeholder="ejemplo@correo.com">
+                </div>
+            </div>
+
+            <div class="botones-container">
+                <button type="submit" id="submit-button">Enviar Reporte</button>
+            </div>
+
+            <!-- Contenedor para bloquear la pantalla -->
+            <div id="overlay" style="display: none;">
+                <div class="spinner"></div>
+                <div id="loadingMessage">
+                    <h4>Por favor espera un momento...</h4>
+                    <p></p>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Objetos para almacenar las imágenes seleccionadas
+        const selectedFiles = {
+            preview1: [],
+        };
+
+        // Mostrar/ocultar campos condicionales
+        document.querySelectorAll('input[name="tipo-incidente"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const otroContainer = document.getElementById('otro-incidente-container');
+                otroContainer.style.display = this.value === 'Otro' ? 'block' : 'none';
+                
+                // Validar el campo cuando cambia
+                validateRadioGroup('tipo-incidente-group', 'tipo-incidente');
+                
+                // Si es "Otro", validar también el campo de texto
+                if(this.value === 'Otro') {
+                    validateField(document.getElementById('otro-incidente'));
+                }
+            });
+        });
+
+        // Función para obtener la fecha actual en formato YYYY-MM-DD
+        function getCurrentDate() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        // Función para obtener la hora actual en formato HH:MM
+        function getCurrentTime() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            return `${hours}:${minutes}`;
+        }
+
+        // Establecer fecha y hora actual al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('fecha').value = getCurrentDate();
+            document.getElementById('hora').value = getCurrentTime();
+            
+            // Configurar event listeners para validación en tiempo real
+            setupFieldValidation();
+        });
+
+        document.getElementById('notificacion').addEventListener('change', function() {
+            const emailContainer = document.getElementById('email-container');
+            emailContainer.style.display = this.checked ? 'block' : 'none';
+            
+            // Si se activa la notificación, validar el campo de email
+            if(this.checked) {
+                validateField(document.getElementById('email'));
+            }
+        });
+
+        // Configurar validación en tiempo real para todos los campos
+        function setupFieldValidation() {
+            // Campos de texto, textarea, select
+            const inputFields = document.querySelectorAll('input[type="text"], input[type="date"], input[type="time"], input[type="email"], textarea, select');
+            inputFields.forEach(field => {
+                field.addEventListener('input', () => validateField(field));
+                field.addEventListener('blur', () => validateField(field));
+                
+                // Validar campo al inicio si ya tiene valor
+                if(field.value) validateField(field);
+            });
+            
+            // Radio buttons
+            const radioGroups = document.querySelectorAll('.radio-group');
+            radioGroups.forEach(group => {
+                const radios = group.querySelectorAll('input[type="radio"]');
+                radios.forEach(radio => {
+                    radio.addEventListener('change', () => {
+                        const groupId = radio.closest('.radio-group').id;
+                        const name = radio.name;
+                        validateRadioGroup(groupId, name);
+                    });
+                });
+                
+                // Validar grupo al inicio si ya tiene selección
+                const name = radios[0].name;
+                if(document.querySelector(`input[name="${name}"]:checked`)) {
+                    validateRadioGroup(group.id, name);
+                }
+            });
+            
+            // Checkbox
+            document.getElementById('notificacion').addEventListener('change', function() {
+                validateField(this);
+            });
+        }
+        
+        // Función para validar un campo individual
+        function validateField(field) {
+            if(!field) return;
+            
+            // Validar según el tipo de campo
+            if(field.type === 'email' && field.value) {
+                const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(field.value);
+                field.classList.toggle('invalid-field', !isValid);
+                field.classList.toggle('valid-field', isValid);
+            } 
+            else if(field.type === 'checkbox') {
+                // No aplicamos validación visual a checkbox ya que es opcional
+                return;
+            }
+            else {
+                const isValid = field.value.trim() !== '';
+                field.classList.toggle('invalid-field', !isValid);
+                field.classList.toggle('valid-field', isValid);
+            }
+        }
+        
+        // Función para validar grupos de radio buttons
+        function validateRadioGroup(groupId, name) {
+            const group = document.getElementById(groupId);
+            const isChecked = document.querySelector(`input[name="${name}"]:checked`) !== null;
+            
+            group.classList.toggle('invalid-field', !isChecked);
+            group.classList.toggle('valid-field', isChecked);
+            
+            // Si es el grupo de tipo de incidente y está seleccionado "Otro", validar también ese campo
+            if(name === 'tipo-incidente' && isChecked) {
+                const selectedValue = document.querySelector(`input[name="${name}"]:checked`).value;
+                if(selectedValue === 'Otro') {
+                    validateField(document.getElementById('otro-incidente'));
+                }
+            }
+        }
+
+        // Validar formulario antes de enviar
+        function validateForm() {
+            let isValid = true;
+            
+            // Validar campos individuales
+            const fieldsToValidate = [
+                'fecha', 'hora', 'ubicacion', 'descripcion', 'accion-inmediata', 
+                'otro-incidente', 'email'
+            ];
+            
+            fieldsToValidate.forEach(id => {
+                const field = document.getElementById(id);
+                if(field && field.offsetParent !== null) { // Si el campo es visible
+                    validateField(field);
+                    if(field.classList.contains('invalid-field')) isValid = false;
+                }
+            });
+            
+            // Validar grupos de radio buttons
+            const radioGroups = ['tipo-incidente', 'estado-incidente'];
+            radioGroups.forEach(name => {
+                validateRadioGroup(`${name}-group`, name);
+                const group = document.getElementById(`${name}-group`);
+                if(group.classList.contains('invalid-field')) isValid = false;
+            });
+            
+            // Validación especial para campo "Otro" si está visible
+            const otroIncidenteContainer = document.getElementById('otro-incidente-container');
+            if(otroIncidenteContainer.style.display === 'block') {
+                validateField(document.getElementById('otro-incidente'));
+                if(document.getElementById('otro-incidente').classList.contains('invalid-field')) {
+                    isValid = false;
+                }
+            }
+            
+            // Validación especial para email si la notificación está activada
+            if(document.getElementById('notificacion').checked) {
+                validateField(document.getElementById('email'));
+                if(document.getElementById('email').classList.contains('invalid-field')) {
+                    isValid = false;
+                }
+            }
+            
+            return isValid;
+        }
+
+        // Manejar el envío del formulario
+        document.getElementById("form-container").addEventListener("submit", function(event) {
+            event.preventDefault();
+            
+            if (!validateForm()) {
+                Swal.fire({
+                    text: 'Por favor complete todos los campos obligatorios',
+                    icon: 'warning',
+                    confirmButtonText: 'Entendido'
+                });
+                return;
+            }
+
+            // Mostrar mensaje de confirmación
+            Swal.fire({
+                text: "¿Confirmar el envío del reporte?",
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonText: "Sí, enviar",
+                cancelButtonText: "Cancelar",
+                allowOutsideClick: false,
+                customClass: {
+                    popup: "swal-popup",
+                    confirmButton: "swal-button",
+                    cancelButton: "swal-button-cancel",
+                    actions: "swal-actions",
+                },
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById("overlay").style.display = "flex";
+                    enviarReporte();
+                }
+            });
+        });
+
+        // Función para enviar el reporte
+        async function enviarReporte() {
+            // Verificar si hay imágenes adjuntas
+            const hasImages = selectedFiles.preview1.length > 0;
+            let pdfBase64 = null;
+
+            // Crear PDF solo si hay imágenes
+            if (hasImages) {
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF({ format: "letter" });
+
+                if (selectedFiles['preview1'].length > 0) {
+                    const files = selectedFiles['preview1'];
+                    let imgCount = 0;
+
+                    pdf.setFont("times", "bold");
+                    pdf.text("Evidencia fotográfica:", 10, 15);
+
+                    const imgWidth = 60;
+                    const imgHeight = 40;
+                    const marginX = 15;
+                    const marginY = 20;
+                    const spacingX = 65;
+                    const spacingY = 45;
+                    const pageHeight = pdf.internal.pageSize.height;
+
+                    for (let j = 0; j < files.length; j++) {
+                        const file = files[j];
+                        const imgData = await compressImage(file, 0.5);
+
+                        const x = (imgCount % 3) * spacingX + marginX;
+                        const y = Math.floor(imgCount / 3) * spacingY + marginY;
+
+                        if (y + imgHeight > pageHeight - marginY) {
+                            pdf.addPage();
+                            pdf.text("Continuación de evidencia fotográfica:", 10, 10);
+                            imgCount = 0;
+                        }
+
+                        pdf.addImage(imgData, "JPEG", x, y, imgWidth, imgHeight);
+                        imgCount++;
+
+                        if (imgCount === 15) {
+                            imgCount = 0;
+                            if (files.length % 15 !== 0 && files.length > 0) {
+                                pdf.addPage();
+                                pdf.text("Evidencia fotográfica:", 10, 15);
+                            }
+                        }
+                    }
+                }
+
+                pdfBase64 = pdf.output('datauristring').split(',')[1];
+            }
+
+            // Recopilar datos del formulario
+            const datos = {
+                fecha: document.getElementById('fecha').value,
+                hora: document.getElementById('hora').value,
+                tipoIncidente: document.querySelector('input[name="tipo-incidente"]:checked').value,
+                otroIncidente: document.getElementById('otro-incidente').value || '',
+                ubicacion: document.getElementById('ubicacion').value,
+                descripcion: document.getElementById('descripcion').value,
+                estadoIncidente: document.querySelector('input[name="estado-incidente"]:checked').value,
+                accionInmediata: document.getElementById('accion-inmediata').value,
+                notificacion: document.getElementById('notificacion').checked ? 'Sí' : 'No',
+                email: document.getElementById('email').value || '',
+                pdf: pdfBase64 || ""
+            };
+
+            // Enviar datos al servidor (debes actualizar la URL con tu script de Google)
+            fetch("https://script.google.com/macros/s/AKfycbxUmxVhgq83ZneJXt69iStN7RvasX888gNJyMQ5qBcsbFU271sngHZ9jfnANzzN4bk/exec", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: new URLSearchParams(datos)
+            })
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById("overlay").style.display = "none";
+                Swal.fire({
+                    text: 'Reporte enviado correctamente. Se dará seguimiento al incidente.',
+                    icon: 'success',
+                    confirmButtonText: 'Aceptar',
+                    allowOutsideClick: false,
+                    customClass: {
+                        content: 'swal-content',
+                        confirmButton: 'swal-button',
+                        popup: 'swal-popup'
+                    }
+                }).then(() => {
+                    window.location.reload();
+                });
+            })
+            .catch(error => {
+                document.getElementById("overlay").style.display = "none";
+                Swal.fire({
+                    text: 'Error al enviar el reporte. Por favor intente nuevamente.',
+                    icon: 'error',
+                    confirmButtonText: 'Aceptar',
+                    customClass: {
+                        content: 'swal-content',
+                        confirmButton: 'swal-button',
+                        popup: 'swal-popup'
+                    }
+                });
+            });
+        }
+
+        // Funciones para manejo de imágenes (igual que en tu código original)
+        function handleFileInput(event, previewId) {
+            const files = event.target.files;
+            const previewContainer = document.getElementById(previewId);
+
+            Array.from(files).forEach((file) => {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const div = document.createElement("div");
+                    div.classList.add("image-preview-item");
+                    div.innerHTML = `
+                        <img src="${e.target.result}" alt="Preview">
+                        <div class="delete-icon" onclick="deleteImage('${previewId}', ${selectedFiles[previewId].length})">×</div>
+                    `;
+                    previewContainer.appendChild(div);
+                    selectedFiles[previewId].push(file);
+                };
+                reader.readAsDataURL(file);
+            });
+
+            event.target.value = "";
+        }
+
+        function deleteImage(previewId, index) {
+            const previewContainer = document.getElementById(previewId);
+            previewContainer.removeChild(previewContainer.children[index]);
+            selectedFiles[previewId].splice(index, 1);
+
+            Array.from(previewContainer.children).forEach((child, newIndex) => {
+                const deleteIcon = child.querySelector(".delete-icon");
+                deleteIcon.setAttribute(
+                    "onclick",
+                    `deleteImage('${previewId}', ${newIndex})`
+                );
+            });
+        }
+
+        document.getElementById("adjunto1").addEventListener("change", (e) => handleFileInput(e, "preview1"));
+
+        const dragAreas = ["drag-area1"];
+        dragAreas.forEach((area) => {
+            const dragArea = document.getElementById(area);
+            dragArea.addEventListener("dragover", (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                dragArea.style.backgroundColor = "#e0f7ff";
+            });
+
+            dragArea.addEventListener("dragleave", (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                dragArea.style.backgroundColor = "#f0f8ff";
+            });
+
+            dragArea.addEventListener("drop", (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                const files = event.dataTransfer.files;
+                const previewId = area.replace("drag-area", "preview");
+                handleFileInput({ target: { files } }, previewId);
+            });
+        });
+
+        function compressImage(file, quality) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement("canvas");
+                        const ctx = canvas.getContext("2d");
+                        const maxWidth = 600;
+                        const scale = maxWidth / img.width;
+                        canvas.width = maxWidth;
+                        canvas.height = img.height * scale;
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        const dataUrl = canvas.toDataURL("image/jpeg", quality);
+                        resolve(dataUrl);
+                    };
+                    img.src = event.target.result;
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+    </script>
+</body>
+</html>
