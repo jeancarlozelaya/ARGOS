@@ -166,45 +166,8 @@
         display: none;
     }
 
-    /* Nuevos estilos para validación de campos */
-    .question-container input:invalid,
-    .question-container textarea:invalid,
-    .question-container select:invalid,
-    .invalid-field {
-        border-color: #ff4444 !important;
-    }
 
-    .question-container input:valid,
-    .question-container textarea:valid,
-    .question-container select:valid,
-    .valid-field {
-        border-color: #00C851 !important;
-    }
 
-    .radio-group.invalid-field {
-        border: 2px solid #ff4444;
-        padding: 10px;
-        border-radius: 5px;
-    }
-
-    .radio-group.valid-field {
-        border: 2px solid #00C851;
-        padding: 10px;
-        border-radius: 5px;
-    }
-
-    /* Estilos para el estado inicial (sin validar) */
-    .question-container input:not(:focus):not(:placeholder-shown):invalid,
-    .question-container textarea:not(:focus):not(:placeholder-shown):invalid,
-    .question-container select:not(:focus):not(:placeholder-shown):invalid {
-        border-color: #ff4444 !important;
-    }
-
-    .question-container input:not(:focus):not(:placeholder-shown):valid,
-    .question-container textarea:not(:focus):not(:placeholder-shown):valid,
-    .question-container select:not(:focus):not(:placeholder-shown):valid {
-        border-color: #00C851 !important;
-    }
 
 #overlay {
   display: none;
@@ -250,6 +213,12 @@
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+
+
+
+
+
 
     /* SweetAlert estilos */
     .swal-actions {
@@ -444,7 +413,7 @@
             <!-- 2. Tipo de incidente -->
             <div class="question-container">
                 <label>Tipo de incidente: <span style="color: red;">*</span></label>
-                <div class="radio-group" id="tipo-incidente-group">
+                <div class="radio-group">
                     <label><input type="radio" name="tipo-incidente" value="Fuga de agua" required> Fuga de agua</label>
                     <label><input type="radio" name="tipo-incidente" value="Derrame de agua"> Derrame de agua</label>
                     <label><input type="radio" name="tipo-incidente" value="Otro"> Otro</label>
@@ -481,7 +450,7 @@
             <!-- 6. Estado del incidente -->
             <div class="question-container">
                 <label>Estado del incidente: <span style="color: red;">*</span></label>
-                <div class="radio-group" id="estado-incidente-group">
+                <div class="radio-group">
                     <label><input type="radio" name="estado-incidente" value="Sí, aún está ocurriendo" required> Sí, aún está ocurriendo</label>
                     <label><input type="radio" name="estado-incidente" value="No, ya se detuvo o se controló"> No, ya se detuvo o se controló</label>
                 </div>
@@ -511,13 +480,17 @@
             </div>
 
             <!-- Contenedor para bloquear la pantalla -->
-            <div id="overlay" style="display: none;">
-                <div class="spinner"></div>
-                <div id="loadingMessage">
-                    <h4>Por favor espera un momento...</h4>
-                    <p></p>
-                </div>
-            </div>
+
+
+<div id="overlay" style="display: none;">
+  <div class="spinner"></div>
+  <div id="loadingMessage">
+    <h4>Por favor espera un momento...</h4>
+    <p></p>
+  </div>
+</div>
+
+
         </form>
     </div>
 
@@ -532,16 +505,9 @@
             radio.addEventListener('change', function() {
                 const otroContainer = document.getElementById('otro-incidente-container');
                 otroContainer.style.display = this.value === 'Otro' ? 'block' : 'none';
-                
-                // Validar el campo cuando cambia
-                validateRadioGroup('tipo-incidente-group', 'tipo-incidente');
-                
-                // Si es "Otro", validar también el campo de texto
-                if(this.value === 'Otro') {
-                    validateField(document.getElementById('otro-incidente'));
-                }
             });
         });
+
 
         // Función para obtener la fecha actual en formato YYYY-MM-DD
         function getCurrentDate() {
@@ -564,140 +530,40 @@
         document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('fecha').value = getCurrentDate();
             document.getElementById('hora').value = getCurrentTime();
-            
-            // Configurar event listeners para validación en tiempo real
-            setupFieldValidation();
         });
 
         document.getElementById('notificacion').addEventListener('change', function() {
             const emailContainer = document.getElementById('email-container');
             emailContainer.style.display = this.checked ? 'block' : 'none';
-            
-            // Si se activa la notificación, validar el campo de email
-            if(this.checked) {
-                validateField(document.getElementById('email'));
-            }
         });
-
-        // Configurar validación en tiempo real para todos los campos
-        function setupFieldValidation() {
-            // Campos de texto, textarea, select
-            const inputFields = document.querySelectorAll('input[type="text"], input[type="date"], input[type="time"], input[type="email"], textarea, select');
-            inputFields.forEach(field => {
-                field.addEventListener('input', () => validateField(field));
-                field.addEventListener('blur', () => validateField(field));
-                
-                // Validar campo al inicio si ya tiene valor
-                if(field.value) validateField(field);
-            });
-            
-            // Radio buttons
-            const radioGroups = document.querySelectorAll('.radio-group');
-            radioGroups.forEach(group => {
-                const radios = group.querySelectorAll('input[type="radio"]');
-                radios.forEach(radio => {
-                    radio.addEventListener('change', () => {
-                        const groupId = radio.closest('.radio-group').id;
-                        const name = radio.name;
-                        validateRadioGroup(groupId, name);
-                    });
-                });
-                
-                // Validar grupo al inicio si ya tiene selección
-                const name = radios[0].name;
-                if(document.querySelector(`input[name="${name}"]:checked`)) {
-                    validateRadioGroup(group.id, name);
-                }
-            });
-            
-            // Checkbox
-            document.getElementById('notificacion').addEventListener('change', function() {
-                validateField(this);
-            });
-        }
-        
-        // Función para validar un campo individual
-        function validateField(field) {
-            if(!field) return;
-            
-            // Validar según el tipo de campo
-            if(field.type === 'email' && field.value) {
-                const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(field.value);
-                field.classList.toggle('invalid-field', !isValid);
-                field.classList.toggle('valid-field', isValid);
-            } 
-            else if(field.type === 'checkbox') {
-                // No aplicamos validación visual a checkbox ya que es opcional
-                return;
-            }
-            else {
-                const isValid = field.value.trim() !== '';
-                field.classList.toggle('invalid-field', !isValid);
-                field.classList.toggle('valid-field', isValid);
-            }
-        }
-        
-        // Función para validar grupos de radio buttons
-        function validateRadioGroup(groupId, name) {
-            const group = document.getElementById(groupId);
-            const isChecked = document.querySelector(`input[name="${name}"]:checked`) !== null;
-            
-            group.classList.toggle('invalid-field', !isChecked);
-            group.classList.toggle('valid-field', isChecked);
-            
-            // Si es el grupo de tipo de incidente y está seleccionado "Otro", validar también ese campo
-            if(name === 'tipo-incidente' && isChecked) {
-                const selectedValue = document.querySelector(`input[name="${name}"]:checked`).value;
-                if(selectedValue === 'Otro') {
-                    validateField(document.getElementById('otro-incidente'));
-                }
-            }
-        }
 
         // Validar formulario antes de enviar
         function validateForm() {
-            let isValid = true;
+            const fecha = document.getElementById('fecha').value;
+            const hora = document.getElementById('hora').value;
+            const tipoIncidente = document.querySelector('input[name="tipo-incidente"]:checked');
+            const ubicacion = document.getElementById('ubicacion').value;
+            const descripcion = document.getElementById('descripcion').value;
+            const estadoIncidente = document.querySelector('input[name="estado-incidente"]:checked');
+            const notificacion = document.getElementById('notificacion').checked;
+            const email = document.getElementById('email').value;
             
-            // Validar campos individuales
-            const fieldsToValidate = [
-                'fecha', 'hora', 'ubicacion', 'descripcion', 'accion-inmediata', 
-                'otro-incidente', 'email'
-            ];
-            
-            fieldsToValidate.forEach(id => {
-                const field = document.getElementById(id);
-                if(field && field.offsetParent !== null) { // Si el campo es visible
-                    validateField(field);
-                    if(field.classList.contains('invalid-field')) isValid = false;
-                }
-            });
-            
-            // Validar grupos de radio buttons
-            const radioGroups = ['tipo-incidente', 'estado-incidente'];
-            radioGroups.forEach(name => {
-                validateRadioGroup(`${name}-group`, name);
-                const group = document.getElementById(`${name}-group`);
-                if(group.classList.contains('invalid-field')) isValid = false;
-            });
-            
-            // Validación especial para campo "Otro" si está visible
-            const otroIncidenteContainer = document.getElementById('otro-incidente-container');
-            if(otroIncidenteContainer.style.display === 'block') {
-                validateField(document.getElementById('otro-incidente'));
-                if(document.getElementById('otro-incidente').classList.contains('invalid-field')) {
-                    isValid = false;
-                }
+            // Validar campos obligatorios
+            if (!fecha || !hora || !tipoIncidente || !ubicacion || !descripcion || !estadoIncidente) {
+                return false;
             }
             
-            // Validación especial para email si la notificación está activada
-            if(document.getElementById('notificacion').checked) {
-                validateField(document.getElementById('email'));
-                if(document.getElementById('email').classList.contains('invalid-field')) {
-                    isValid = false;
-                }
+            // Si seleccionó "Otro" en tipo de incidente, validar que especifique
+            if (tipoIncidente.value === 'Otro' && !document.getElementById('otro-incidente').value) {
+                return false;
             }
             
-            return isValid;
+            // Si quiere notificación, validar email
+            if (notificacion && !email) {
+                return false;
+            }
+            
+            return true;
         }
 
         // Manejar el envío del formulario
