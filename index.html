@@ -3,416 +3,494 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Reporte de Fugas y Derrames</title>
+    <title>Registro de Incidentes por Fugas y Derrames de Agua</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     <link rel="preload" href="https://github.com/jeancarlozelaya/PIBRISA/blob/main/Im%C3%A1genes/Icono.png?raw=true" as="image">
-<style>
-    /* Estilos base (igual que en tu página original) */
-    body, html {
-        font-family: Arial, sans-serif;
-        margin: 0;
-        padding: 0;
-        background-color: #f9f9f9;
-        color: #333;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        min-height: 100vh;
-        width: 100%;
-        max-width: 100%;
-        overflow-x: hidden;
-    }
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Variables de color basadas en tu logo */
+        :root {
+            --primary-color: #3f7b57; /* Verde oscuro - Principal */
+            --secondary-color: #6a9b7a; /* Verde medio - Alternativo */
+            --accent-color: #2196F3; /* Azul vibrante - Para elementos interactivos */
+            --light-gray: #f0f2f5; /* Fondo general */
+            --medium-gray: #d1d9e6; /* Bordes, separadores */
+            --dark-gray: #4a4a4a; /* Texto principal */
+            --white: #ffffff;
+            --danger-color: #ef5350; /* Rojo para alertas/errores */
+            --success-color: #4CAF50; /* Verde para éxito */
+        }
 
-    .header {
-        height: 150px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        width: 100%;
-    }
+        body, html {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--light-gray);
+            color: var(--dark-gray);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            width: 100%;
+            max-width: 100%;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
 
-    .header-image {
-        max-width: 100%;
-        height: auto;
-        max-height: 100px;
-    }
+        .container {
+            background: var(--white);
+            padding: 30px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 700px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+            margin: 40px auto;
+            box-sizing: border-box;
+            border-top: 5px solid var(--primary-color);
+        }
 
-    .container {
-        background: #ffffff;
-        padding: 20px;
-        border-radius: 10px;
-        width: 90%;
-        max-width: 600px;
-        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-        margin-top: 20px;
-        text-align: center;
-        margin: 40px auto;
-        grid-row: 2;
-        height: auto;
-        box-sizing: border-box;
-    }
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 30px;
+            font-weight: 700;
+            font-size: 2em;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
+        }
 
-    h1 {
-        text-align: center;
-        color: #333;
-        margin: 0 0 20px 0;
-    }
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: 500;
+            color: var(--dark-gray);
+            margin-bottom: 5px;
+        }
 
-    label {
-        display: block;
-        margin-top: 10px;
-        font-weight: bold;
-    }
+        input[type="text"],
+        input[type="date"],
+        input[type="time"],
+        input[type="email"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px 15px;
+            font-size: 1rem;
+            border: 1px solid var(--medium-gray);
+            border-radius: 8px;
+            box-sizing: border-box;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            background-color: var(--white);
+            color: var(--dark-gray);
+        }
 
-    input[type="text"],
-    input[type="date"],
-    input[type="time"],
-    input[type="email"],
-    textarea,
-    select,
-    button {
-        width: 100%;
-        margin-top: 5px;
-        padding: 10px;
-        font-size: 16px;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-        box-sizing: border-box;
-    }
+        input[type="text"]:focus,
+        input[type="date"]:focus,
+        input[type="time"]:focus,
+        input[type="email"]:focus,
+        textarea:focus,
+        select:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.2);
+            outline: none;
+        }
 
-    button {
-        background-color: #007bff;
-        color: #fff;
-        border: none;
-        cursor: pointer;
-        padding: 12px 0;
-    }
+        textarea {
+            resize: vertical;
+        }
 
-    button:hover {
-        background-color: #0056b3;
-    }
+        button {
+            background-color: var(--primary-color);
+            color: var(--white);
+            border: none;
+            cursor: pointer;
+            padding: 15px 25px;
+            font-size: 1.1rem;
+            border-radius: 8px;
+            margin-top: 25px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            width: 100%;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
 
-    .question-container {
-        margin-bottom: 20px;
-        text-align: left;
-        padding: 10px;
-        border: 2px solid #ccc;
-        border-radius: 5px;
-        background-color: #f9f9f9;
-        transition: border-color 0.3s;
-        box-sizing: border-box;
-    }
+        button:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
 
-    .question-container:hover {
-        border-color: #007BFF;
-    }
+        button:active {
+            transform: translateY(0);
+        }
 
-    .question-container input[type="text"],
-    .question-container input[type="date"],
-    .question-container input[type="time"],
-    .question-container input[type="email"],
-    .question-container textarea,
-    .question-container select {
-        padding: 10px;
-        border: 2px solid #ccc;
-        border-radius: 5px;
-        width: 100%;
-        font-size: 16px;
-        background-color: #f9f9f9;
-        color: #333;
-        transition: border-color 0.3s;
-        box-sizing: border-box;
-        margin-top: 5px;
-    }
+        .question-container {
+            margin-bottom: 25px;
+            padding: 20px;
+            border: 1px solid var(--medium-gray);
+            border-radius: 10px;
+            background-color: var(--white);
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
 
-    .question-container input[type="text"]:focus,
-    .question-container input[type="date"]:focus,
-    .question-container input[type="time"]:focus,
-    .question-container input[type="email"]:focus,
-    .question-container textarea:focus,
-    .question-container select:focus {
-        border-color: #007BFF;
-        outline: none;
-    }
+        .question-container:hover {
+            border-color: var(--accent-color);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
 
-    /* Estilo para radio buttons y checkboxes */
-    .radio-group, .checkbox-group {
-        margin-top: 10px;
-    }
+        /* Estilo para radio buttons y checkboxes */
+        .radio-group, .checkbox-group {
+            margin-top: 15px;
+        }
 
-    .radio-group label, .checkbox-group label {
-        display: flex;
-        align-items: center;
-        margin: 5px 0;
-        font-weight: normal;
-        cursor: pointer;
-    }
+        .radio-group label, .checkbox-group label {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            font-weight: 400;
+            cursor: pointer;
+            color: var(--dark-gray);
+            padding-left: 0;
+        }
 
-    .radio-group input[type="radio"],
-    .checkbox-group input[type="checkbox"] {
-        width: auto;
-        margin-right: 10px;
-    }
+        .radio-group input[type="radio"],
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+            margin-right: 12px;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            border: 2px solid var(--primary-color);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+        }
 
-    /* Estilo para campos condicionales */
-    .conditional-field {
-        margin-top: 10px;
-        padding-left: 20px;
-        border-left: 3px solid #007BFF;
-        display: none;
-    }
+        .checkbox-group input[type="checkbox"] {
+            border-radius: 4px;
+        }
 
+        .radio-group input[type="radio"]:checked,
+        .checkbox-group input[type="checkbox"]:checked {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
 
+        .radio-group input[type="radio"]:checked::before {
+            content: '';
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--white);
+            transform: scale(1);
+            transition: transform 0.2s ease-in-out;
+        }
 
+        .checkbox-group input[type="checkbox"]:checked::before {
+            content: '\f00c';
+            font-family: 'Font Awesome 5 Free';
+            font-weight: 900;
+            font-size: 12px;
+            color: var(--white);
+            transform: scale(1);
+            transition: transform 0.2s ease-in-out;
+        }
 
-#overlay {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(255, 255, 255, 0.9);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-  flex-direction: column;
-}
+        /* Estilo para campos condicionales */
+        .conditional-field {
+            margin-top: 15px;
+            padding-left: 20px;
+            border-left: 4px solid var(--accent-color);
+            background-color: rgba(33, 150, 243, 0.05);
+            padding-top: 10px;
+            padding-bottom: 10px;
+            border-radius: 0 8px 8px 0;
+            display: none;
+        }
 
-.spinner {
-  width: 50px;
-  height: 50px;
-  border: 5px solid rgba(0, 123, 255, 0.2);
-  border-radius: 50%;
-  border-top-color: #007BFF;
-  animation: spin 1s ease-in-out infinite;
-  margin-bottom: 20px;
-}
+        #overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.9);
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            flex-direction: column;
+        }
 
-#loadingMessage {
-  text-align: center;
-  color: #333;
-  font-family: Arial, sans-serif;
-}
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 6px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--primary-color);
+            animation: spin 1s ease-in-out infinite;
+            margin-bottom: 20px;
+        }
 
-#loadingMessage h3 {
-  margin: 0 0 10px;
-  font-size: 1.2em;
-}
+        #loadingMessage {
+            text-align: center;
+            color: var(--dark-gray);
+            font-family: 'Roboto', sans-serif;
+        }
 
-#loadingMessage p {
-  margin: 0;
-  color: #666;
-}
+        #loadingMessage h4 {
+            margin: 0 0 10px;
+            font-size: 1.3em;
+            color: var(--primary-color);
+        }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
+        #loadingMessage p {
+            margin: 0;
+            color: #666;
+            font-size: 1.0em;
+        }
 
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
 
+        /* SweetAlert estilos mejorados */
+        .swal2-popup {
+            font-family: 'Roboto', sans-serif;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            padding: 20px;
+            max-width: 380px !important;
+        }
 
+        .swal2-title {
+            color: var(--primary-color) !important;
+            font-weight: 700 !important;
+            font-size: 1.6em !important;
+        }
 
+        .swal2-html-container {
+            font-size: 1.1em !important;
+            color: var(--dark-gray) !important;
+            margin: 15px 0 !important;
+            line-height: 1.5 !important;
+        }
 
+        .swal2-icon {
+            margin: 20px auto !important;
+        }
 
+        .swal2-icon.swal2-warning {
+            color: #ff9800 !important;
+            border-color: #ff9800 !important;
+        }
 
-    /* SweetAlert estilos */
-    .swal-actions {
-        display: flex;
-        justify-content: center;
-        gap: 10px;
-        width: 80%;
-        margin: 0 auto;
-        flex-wrap: nowrap;
-    }
+        .swal2-icon.swal2-success {
+            color: var(--success-color) !important;
+            border-color: var(--success-color) !important;
+        }
 
-    .swal-content {
-        font-size: 0.9em;
-        line-height: 1.4;
-    }
+        .swal2-icon.swal2-question {
+            color: var(--accent-color) !important;
+            border-color: var(--accent-color) !important;
+        }
 
-    .swal-button,
-    .swal-button-cancel {
-        flex: 1;
-        min-width: 120px;
-        padding: 10px 20px;
-        font-size: 14px;
-        text-align: center;
-        border: none;
-        border-radius: 4px;
-        color: white;
-        transition: background-color 0.3s ease;
-    }
+        .swal2-actions {
+            margin-top: 25px !important;
+            display: flex !important;
+            justify-content: center !important;
+            gap: 15px !important;
+            flex-wrap: wrap !important;
+        }
 
-    .swal-popup {
-        width: 300px;
-        max-width: 90%;
-    }
+        .swal2-styled.swal2-confirm {
+            background-color: var(--success-color) !important;
+            color: var(--white) !important;
+            border-radius: 8px !important;
+            font-size: 1em !important;
+            padding: 10px 20px !important;
+            box-shadow: none !important;
+            transition: background-color 0.3s ease, transform 0.2s ease !important;
+        }
 
-    .swal-button {
-        background-color: #28a745;
-        color: white;
-        border: none;
-        border-radius: 4px;
-    }
+        .swal2-styled.swal2-confirm:hover {
+            background-color: #43a047 !important;
+            transform: translateY(-1px);
+        }
 
-    .swal2-popup .swal2-actions .swal-button-cancel {
-        background-color: #FF6347 !important;
-        color: white !important;
-        border: none !important;
-        border-radius: 4px !important;
-    }
+        .swal2-styled.swal2-cancel {
+            background-color: var(--danger-color) !important;
+            color: var(--white) !important;
+            border-radius: 8px !important;
+            font-size: 1em !important;
+            padding: 10px 20px !important;
+            box-shadow: none !important;
+            transition: background-color 0.3s ease, transform 0.2s ease !important;
+        }
 
-    .swal2-actions {
-        display: flex !important;
-        justify-content: center;
-        gap: 10px;
-        flex-wrap: nowrap;
-    }
+        .swal2-styled.swal2-cancel:hover {
+            background-color: #e53935 !important;
+            transform: translateY(-1px);
+        }
 
-    .swal2-icon.swal2-icon-show {
-        background-color: transparent !important;
-    }
+        /* Estilos para imágenes adjuntas */
+        .image-preview {
+            width: 100%;
+            max-height: 250px;
+            overflow-y: auto;
+            border: 1px dashed var(--medium-gray);
+            border-radius: 8px;
+            padding: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            box-sizing: border-box;
+            background-color: var(--light-gray);
+            margin-top: 10px;
+        }
 
-    /* Estilos para imágenes adjuntas */
-    .image-preview {
-        width: 100%;
-        max-height: 200px;
-        overflow-y: auto;
-        border: 0px solid #ccc;
-        padding: 10px;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        box-sizing: border-box;
-    }
+        .image-preview-item {
+            position: relative;
+            width: 90px;
+            height: 90px;
+            overflow: hidden;
+            border-radius: 8px;
+            border: 1px solid var(--medium-gray);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s ease;
+        }
 
-    .image-preview-item {
-        position: relative;
-        width: 85px;
-        height: 85px;
-        overflow: hidden;
-        border-radius: 5px;
-        border: 1px solid #ddd;
-    }
+        .image-preview-item:hover {
+            transform: translateY(-3px);
+        }
 
-    .image-preview-item img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
+        .image-preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
 
-    .delete-icon {
-        position: absolute;
-        top: 5px;
-        left: 5px;
-        width: 20px;
-        height: 20px;
-        background: rgba(255, 0, 0, 0.8);
-        color: #fff;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 14px;
-        cursor: pointer;
-        opacity: 0;
-        transition: opacity 0.3s;
-    }
+        .delete-icon {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 24px;
+            height: 24px;
+            background: var(--danger-color);
+            color: var(--white);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
 
-    .image-preview-item:hover .delete-icon {
-        opacity: 1;
-    }
+        .image-preview-item:hover .delete-icon {
+            opacity: 1;
+            transform: scale(1.1);
+        }
 
-    /* Área de carga de archivos */
-    .file-upload {
-        display: block;
-        position: relative;
-        width: 100%;
-        padding: 20px;
-        background: #f0f8ff;
-        border: 2px dashed #ccc;
-        text-align: center;
-        border-radius: 5px;
-        font-size: 16px;
-        cursor: pointer;
-        margin-top: 10px;
-        box-sizing: border-box;
-        border: 2px dashed #007BFF;
-        border-radius: 10px;
-        padding: 40px 20px;
-        text-align: center;
-        cursor: pointer;
-        font-size: 16px;
-        background-color: #f0f8ff;
-        color: #007BFF;
-        transition: background-color 0.3s ease, border-color 0.3s ease;
-        margin: 10px 0;
-    }
+        /* Área de carga de archivos */
+        .file-upload {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            min-height: 120px;
+            background: var(--light-gray);
+            border: 2px dashed var(--accent-color);
+            border-radius: 10px;
+            font-size: 1rem;
+            color: var(--accent-color);
+            cursor: pointer;
+            margin-top: 15px;
+            box-sizing: border-box;
+            transition: background-color 0.3s ease, border-color 0.3s ease, transform 0.2s ease;
+            text-align: center;
+        }
 
-    .file-upload:hover {
-        border-color: #0056b3;
-    }
+        .file-upload:hover {
+            border-color: var(--primary-color);
+            background-color: rgba(33, 150, 243, 0.08);
+            transform: translateY(-2px);
+        }
 
-    .file-upload input[type="file"] {
-        display: none;
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        opacity: 0;
-        cursor: pointer;
-    }
+        .file-upload input[type="file"] {
+            display: none;
+        }
 
-    /* Botón deshabilitado */
-    button:disabled {
-        background-color: #cccccc;
-        color: #666666;
-        cursor: not-allowed;
-        opacity: 0.7;
-    }
+        .file-upload-text {
+            margin-top: 10px;
+            font-weight: 500;
+        }
 
-    /* Botón habilitado */
-    button:not(:disabled) {
-        background-color: #007bff;
-        color: #fff;
-        cursor: pointer;
-        opacity: 1;
-    }
+        .file-upload i {
+            font-size: 2.5em;
+            color: var(--accent-color);
+            margin-bottom: 5px;
+        }
 
-.required-asterisk {
-    color: red;
-}
+        /* Botón deshabilitado */
+        button:disabled {
+            background-color: var(--medium-gray);
+            color: #999;
+            cursor: not-allowed;
+            opacity: 0.8;
+            transform: none;
+        }
 
-</style>
+        .required-asterisk {
+            color: var(--danger-color);
+            font-weight: bold;
+            margin-left: 3px;
+        }
+
+        .form-section-title {
+            background-color: var(--primary-color);
+            color: var(--white);
+            padding: 10px 20px;
+            border-radius: 8px 8px 0 0;
+            margin: -20px -20px 20px -20px;
+            font-size: 1.1em;
+            font-weight: 600;
+            text-align: left;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+    </style>
 </head>
 <body>
-<!--
-<div class="header">
-   //  <img src="https://github.com/jeancarlozelaya/PIBRISA/blob/main/Im%C3%A1genes/Icono.png?raw=true" alt="Pisos Brillantes" class="header-image">
-</div>
--->
     <div class="container">
         <h1>Registro de Incidentes por Fugas y Derrames de Agua</h1>
         <form id="form-container">
 
             <!-- 1. Fecha y hora del hallazgo -->
             <div class="question-container">
-                <label for="fecha">Fecha del hallazgo: <span style="color: red;">*</span></label>
+                <div class="form-section-title">Fecha: <span class="required-asterisk">*</span></div>
                 <input type="date" id="fecha" name="fecha" required>
-                
-                <label for="hora" style="margin-top: 15px;">Hora del hallazgo: <span style="color: red;">*</span></label>
+            </div>
+
+            <div class="question-container">
+                <div class="form-section-title">Hora: <span class="required-asterisk">*</span></div>
                 <input type="time" id="hora" name="hora" required>
             </div>
 
             <!-- 2. Tipo de incidente -->
             <div class="question-container">
-                <label>Tipo de incidente: <span style="color: red;">*</span></label>
+                <div class="form-section-title">Tipo de Incidente: <span class="required-asterisk">*</span></div>
                 <div class="radio-group">
                     <label><input type="radio" name="tipo-incidente" value="Fuga de agua" required> Fuga de agua</label>
                     <label><input type="radio" name="tipo-incidente" value="Derrame de agua"> Derrame de agua</label>
@@ -427,21 +505,22 @@
 
             <!-- 3. Ubicación exacta -->
             <div class="question-container">
-                <label for="ubicacion">Ubicación exacta del incidente: <span style="color: red;">*</span></label>
+                <div class="form-section-title">Ubicación del Incidente: <span class="required-asterisk">*</span></div>
                 <input type="text" id="ubicacion" name="ubicacion" placeholder="Ej: Baño de Hombres de Administración" required>
             </div>
 
             <!-- 4. Descripción detallada -->
             <div class="question-container">
-                <label for="descripcion">Descripción detallada: <span style="color: red;">*</span></label>
+                <div class="form-section-title">Descripción detallada: <span class="required-asterisk">*</span></div>
                 <textarea id="descripcion" name="descripcion" rows="4" placeholder="Describa lo que encontró, condiciones observadas, etc." required></textarea>
             </div>
 
             <!-- 5. Evidencia fotográfica -->
             <div class="question-container">
-                <label for="adjunto1">Evidencia (Opcional):</label>
+                <div class="form-section-title">Evidencia:</div>
                 <div class="file-upload" id="drag-area1" onclick="document.getElementById('adjunto1').click()">
                     <input type="file" id="adjunto1" name="adjunto1" accept="image/*" multiple>
+                    <i class="fas fa-camera"></i>
                     <span class="file-upload-text">Haz clic o arrastra imágenes para adjuntarlas</span>
                 </div>
                 <div id="preview1" class="image-preview"></div>
@@ -449,7 +528,7 @@
 
             <!-- 6. Estado del incidente -->
             <div class="question-container">
-                <label>Estado del incidente: <span style="color: red;">*</span></label>
+                <div class="form-section-title">Estado Actual del Incidente: <span class="required-asterisk">*</span></div>
                 <div class="radio-group">
                     <label><input type="radio" name="estado-incidente" value="Sí, aún está ocurriendo" required> Sí, aún está ocurriendo</label>
                     <label><input type="radio" name="estado-incidente" value="No, ya se detuvo o se controló"> No, ya se detuvo o se controló</label>
@@ -458,12 +537,13 @@
 
             <!-- 7. Acción inmediata -->
             <div class="question-container">
-                <label for="accion-inmediata">¿Se tomó alguna acción inmediata?</label>
+                <div class="form-section-title">Acciones Inmediatas:</div>
                 <textarea id="accion-inmediata" name="accion-inmediata" rows="4" placeholder="Describa las acciones tomadas (cierre de válvulas, señalización, etc.)"></textarea>
             </div>
 
             <!-- 8. Notificación y seguimiento -->
             <div class="question-container">
+                <div class="form-section-title">Notificación y Seguimiento</div>
                 <label style="display: flex; align-items: center;">
                     <input type="checkbox" id="notificacion" name="notificacion" style="width: auto; margin-right: 10px;">
                     ¿Desea recibir notificación del seguimiento?
@@ -480,17 +560,13 @@
             </div>
 
             <!-- Contenedor para bloquear la pantalla -->
-
-
-<div id="overlay" style="display: none;">
-  <div class="spinner"></div>
-  <div id="loadingMessage">
-    <h4>Por favor espera un momento...</h4>
-    <p></p>
-  </div>
-</div>
-
-
+            <div id="overlay" style="display: none;">
+                <div class="spinner"></div>
+                <div id="loadingMessage">
+                    <h4>Por favor espera un momento...</h4>
+                    <p></p>
+                </div>
+            </div>
         </form>
     </div>
 
@@ -507,7 +583,6 @@
                 otroContainer.style.display = this.value === 'Otro' ? 'block' : 'none';
             });
         });
-
 
         // Función para obtener la fecha actual en formato YYYY-MM-DD
         function getCurrentDate() {
@@ -647,7 +722,7 @@
                             imgCount = 0;
                             if (files.length % 15 !== 0 && files.length > 0) {
                                 pdf.addPage();
-                                pdf.text("Evidencia fotográfica:", 10, 15);
+                                pdf.text("Evidencia:", 10, 15);
                             }
                         }
                     }
